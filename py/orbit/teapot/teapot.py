@@ -37,6 +37,7 @@ Solenoid
 Kicker
 RingRF
 monitor
+Uniform Lattice
 """
 
 class TEAPOT_Lattice(AccLattice):
@@ -79,14 +80,14 @@ class TEAPOT_Lattice(AccLattice):
 		"""
 		parser = MADX_Parser()
 		parser.parse(madx_file_name)
-		
+
 		if(not seqName == parser.getSequenceName()):
 			print "==============================="
 			print "MADX file: ", madx_file_name
 			print "Can not find accelerator sequence: ", seqName
 			print "STOP."
 			sys.exit(1)
-		
+
 		self.setName(parser.getSequenceName())
 		accMADElements = parser.getSequenceList()
 		# make TEAPOT lattice elements by using TEAPOT
@@ -108,7 +109,7 @@ class TEAPOT_Lattice(AccLattice):
 
 	def getSubLattice(self, index_start = -1, index_stop = -1,):
 		"""
-		It returns the new TEAPOT_Lattice with children with indexes 
+		It returns the new TEAPOT_Lattice with children with indexes
 		between index_start and index_stop inclusive
 		"""
 		new_teapot_lattice = self._getSubLattice(TEAPOT_Lattice(),index_start,index_stop)
@@ -122,21 +123,21 @@ class TEAPOT_Lattice(AccLattice):
 		if(actionContainer == None): actionContainer = AccActionsContainer("Bunch Tracking")
 		paramsDict["bunch"] = bunch
 		paramsDict["useCharge"] = self.useCharge
-		
+
 		def track(paramsDict):
 			node = paramsDict["node"]
 			node.track(paramsDict)
-			
+
 		actionContainer.addAction(track, AccActionsContainer.BODY)
 		self.trackActions(actionContainer,paramsDict)
 		actionContainer.removeAction(track, AccActionsContainer.BODY)
 
 	def setUseRealCharge(self, useCharge = 1):
-		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """ 
+		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """
 		self.useCharge = useCharge
-	
+
 	def getUseRealCharge(self):
-		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """ 
+		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """
 		return self.useCharge
 
 class TEAPOT_Ring(AccLattice):
@@ -146,8 +147,8 @@ class TEAPOT_Ring(AccLattice):
 		"""
 	def __init__(self, name = "no name"):
 		AccLattice.__init__(self,name)
-		self.useCharge = 1		
-	
+		self.useCharge = 1
+
 	def readMAD(self, mad_file_name, lineName):
 		"""
 			It creates the teapot lattice from MAD file.
@@ -186,7 +187,7 @@ class TEAPOT_Ring(AccLattice):
 			print "Can not find accelerator sequence: ", seqName
 			print "STOP."
 			sys.exit(1)
-		
+
 		self.setName(parser.getSequenceName())
 		accMADElements = parser.getSequenceList()
 		# make TEAPOT lattice elements by using TEAPOT
@@ -204,7 +205,7 @@ class TEAPOT_Ring(AccLattice):
 			bunchwrapper = BunchWrapTEAPOT("Bunch Wrap")
 			bunchwrapper.getParamsDict()["ring_length"] = self.getLength()
 			node.addChildNode(bunchwrapper, AccNode.BODY)
-			
+
 	def initialize(self):
 		AccLattice.initialize(self)
 		#set up ring length for RF nodes
@@ -213,7 +214,7 @@ class TEAPOT_Ring(AccLattice):
 		for node in self.getNodes():
 			if(node.getType() == ringRF_Node.getType()):
 				node.getParamsDict()["ring_length"] = self.getLength()
-			
+
 		paramsDict = {}
 		actions = AccActionsContainer()
 
@@ -233,38 +234,37 @@ class TEAPOT_Ring(AccLattice):
 
 	def getSubLattice(self, index_start = -1, index_stop = -1,):
 		"""
-		It returns the new TEAPOT_Lattice with children with indexes 
+		It returns the new TEAPOT_Lattice with children with indexes
 		between index_start and index_stop inclusive
 		"""
 		new_teapot_lattice = self._getSubLattice(TEAPOT_Lattice(),index_start,index_stop)
 		new_teapot_lattice.setUseRealCharge(self.getUseRealCharge())
-		return new_teapot_lattice		
-		
-	
+		return new_teapot_lattice
+
+
 	def trackBunch(self, bunch, paramsDict = {}, actionContainer = None):
 		"""
 			It tracks the bunch through the lattice.
 			"""
 		if(actionContainer == None): actionContainer = AccActionsContainer("Bunch Tracking")
 		paramsDict["bunch"] = bunch
-		paramsDict["useCharge"] = self.useCharge		
-		
+		paramsDict["useCharge"] = self.useCharge
+
 		def track(paramsDict):
 			node = paramsDict["node"]
 			node.track(paramsDict)
-		
+
 		actionContainer.addAction(track, AccActionsContainer.BODY)
 		self.trackActions(actionContainer,paramsDict)
 		actionContainer.removeAction(track, AccActionsContainer.BODY)
-		
-	def setUseRealCharge(self, useCharge = 1):
-		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """ 
-		self.useCharge = useCharge
-	
-	def getUseRealCharge(self):
-		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """ 
-		return self.useCharge		
 
+	def setUseRealCharge(self, useCharge = 1):
+		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """
+		self.useCharge = useCharge
+
+	def getUseRealCharge(self):
+		""" If useCharge != 1 the trackBunch(...) method will assume the charge = +1 """
+		return self.useCharge
 
 class _teapotFactory:
 	"""
@@ -276,8 +276,8 @@ class _teapotFactory:
 	def getElements(self, madElem):
 		"""
 		Method produces TEAPOT accelerator elements. It returns the array of TEAPOT nodes.
-		Usually there is only one such element, but sometimes (RF with a non zero length) 
-		there could be more than one element in the returned array 
+		Usually there is only one such element, but sometimes (RF with a non zero length)
+		there could be more than one element in the returned array
 		"""
 		# madElem = MAD_LattElement(" "," ")
 		params_ini = madElem.getParameters()
@@ -445,7 +445,7 @@ class _teapotFactory:
 			xAvg = 0.0
 			yAvg = 0.0
 			elem.addParam("xAvg",xAvg)
-			elem.addParam("yAvg",yAvg)			
+			elem.addParam("yAvg",yAvg)
 		# ------------------------------------------------
 		# ready to finish
 		# ------------------------------------------------
@@ -487,7 +487,6 @@ class _teapotFactory:
 
 	getElements = classmethod(getElements)
 
-
 class BaseTEAPOT(AccNodeBunchTracker):
 	""" The base abstract class of the TEAPOT accelerator elements hierarchy. """
 	def __init__(self, name = "no name"):
@@ -496,7 +495,7 @@ class BaseTEAPOT(AccNodeBunchTracker):
 		"""
 		AccNodeBunchTracker.__init__(self,name)
 		self.setType("base teapot")
-		
+
 class NodeTEAPOT(BaseTEAPOT):
 	def __init__(self, name = "no name"):
 		"""
@@ -512,7 +511,7 @@ class NodeTEAPOT(BaseTEAPOT):
 		self.__tiltNodeIN.setName(name+"_tilt_in")
 		self.__tiltNodeOUT.setName(name+"_tilt_out")
 		self.__fringeFieldIN.setName(name+"_fringe_in")
-		self.__fringeFieldOUT	.setName(name+"_fringe_out")	
+		self.__fringeFieldOUT	.setName(name+"_fringe_out")
 		self.addChildNode(self.__tiltNodeIN,AccNode.ENTRANCE)
 		self.addChildNode(self.__fringeFieldIN,AccNode.ENTRANCE)
 		self.addChildNode(self.__fringeFieldOUT,AccNode.EXIT)
@@ -538,26 +537,26 @@ class NodeTEAPOT(BaseTEAPOT):
 		"""
 		Returns the FringeFieldTEAPOT instance before this TEAPOT node
 		"""
-		return self.__fringeFieldIN 
- 
+		return self.__fringeFieldIN
+
 	def getNodeFringeFieldOUT(self):
 		"""
 		Returns the FringeFieldTEAPOT instance after this TEAPOT node
 		"""
-		return self.__fringeFieldOUT 
-		
+		return self.__fringeFieldOUT
+
 	def getNodeTiltIN(self):
 		"""
 		Returns the TiltTEAPOT instance before this TEAPOT node
 		"""
-		return self.__tiltNodeIN 
- 
+		return self.__tiltNodeIN
+
 	def getNodeTiltOUT(self):
 		"""
 		Returns the  TiltTEAPOT instance after this TEAPOT node
 		"""
-		return self.__tiltNodeOUT		
-		
+		return self.__tiltNodeOUT
+
 	def setFringeFieldFunctionIN(self, trackFunction = None):
 		"""
 		Sets the fringe field function that will track the bunch
@@ -614,7 +613,6 @@ class NodeTEAPOT(BaseTEAPOT):
 		"""
 		return self.__fringeFieldOUT.getUsage()
 
-
 class DriftTEAPOT(NodeTEAPOT):
 	"""
 	Drift TEAPOT element.
@@ -634,7 +632,6 @@ class DriftTEAPOT(NodeTEAPOT):
 		bunch = paramsDict["bunch"]
 		TPB.drift(bunch, length)
 
-
 class ApertureTEAPOT(NodeTEAPOT):
 	"""
 	Aperture TEAPOT element.
@@ -647,9 +644,9 @@ class ApertureTEAPOT(NodeTEAPOT):
 		self.setType("aperture")
 		self.addParam("aperture", [])
 		self.addParam("apertype", 0.0)
-		
+
 	def initialize(self):
-	
+
 		shape = self.getParam("apertype")
 		dim = self.getParam("aperture")
 		if len(dim) > 0:
@@ -679,7 +676,7 @@ class MonitorTEAPOT(NodeTEAPOT):
 		NodeTEAPOT.__init__(self,name)
 		self.setType("monitor teapot")
 		self.twiss =  BunchTwissAnalysis()
-			
+
 	def track(self, paramsDict):
 		"""
 		The bunchtuneanalysis-teapot class implementation of the AccNodeBunchTracker class track(probe) method.
@@ -703,7 +700,7 @@ class BunchWrapTEAPOT(NodeTEAPOT):
 		NodeTEAPOT.__init__(self,name)
 		self.setType("bunch_wrap_teapot")
 		self.addParam("ring_length",0.)
-			   
+
 	def track(self, paramsDict):
 		"""
 			The bunch wrap class implementation of the AccNodeBunchTracker class track(probe) method.
@@ -733,7 +730,7 @@ class SolenoidTEAPOT(NodeTEAPOT):
 		length = self.getLength(index)
 		bunch = paramsDict["bunch"]
 		useCharge = 1
-		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]			
+		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]
 		B = self.getParam("B")
 		TPB.soln(bunch,length,B,useCharge)
 
@@ -749,9 +746,9 @@ class MultipoleTEAPOT(NodeTEAPOT):
 		self.addParam("poles",[])
 		self.addParam("kls",[])
 		self.addParam("skews",[])
-		
+
 		self.setnParts(2)
-		
+
 		def fringeIN(node,paramsDict):
 			usageIN = node.getUsage()
 			if(not usageIN):
@@ -830,7 +827,7 @@ class MultipoleTEAPOT(NodeTEAPOT):
 		length = self.getLength(index)
 		bunch = paramsDict["bunch"]
 		useCharge = 1
-		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]			
+		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]
 		poleArr = self.getParam("poles")
 		klArr = self.getParam("kls")
 		skewArr = self.getParam("skews")
@@ -854,7 +851,6 @@ class MultipoleTEAPOT(NodeTEAPOT):
 			TPB.drift(bunch, length)
 		return
 
-
 class QuadTEAPOT(NodeTEAPOT):
 	"""
 	Quad Combined Function TEAPOT element.
@@ -872,7 +868,7 @@ class QuadTEAPOT(NodeTEAPOT):
 		self.setnParts(2)
 
 		def fringeIN(node,paramsDict):
-			usageIN = node.getUsage()		
+			usageIN = node.getUsage()
 			if(not usageIN):
 				return
 			kq = node.getParam("kq")
@@ -959,7 +955,7 @@ class QuadTEAPOT(NodeTEAPOT):
 		poleArr = self.getParam("poles")
 		klArr = self.getParam("kls")
 		skewArr = self.getParam("skews")
-		bunch = paramsDict["bunch"] 
+		bunch = paramsDict["bunch"]
 		useCharge = 1
 		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]
 		if(index == 0):
@@ -1003,9 +999,9 @@ class BendTEAPOT(NodeTEAPOT):
 		self.addParam("ea2",0.)
 		self.addParam("rho",0.)
 		self.addParam("theta",1.0e-36)
-		
+
 		self.setnParts(2)
-		
+
 		def fringeIN(node,paramsDict):
 			usageIN = node.getUsage()
 			e = node.getParam("ea1")
@@ -1178,9 +1174,9 @@ class RingRFTEAPOT(NodeTEAPOT):
 		self.addParam("phases",[])
 		self.addParam("ring_length",0.)
 		self.setType("RingRF teapot")
-		
+
 		self.setnParts(1)
-		
+
 
 	def addRF(self, harmonic, voltage, phase):
 		"""
@@ -1222,13 +1218,13 @@ class RingRFTEAPOT(NodeTEAPOT):
 		ring_length = self.getParam("ring_length")
 		bunch = paramsDict["bunch"]
 		useCharge = 1
-		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]	
+		if(paramsDict.has_key("useCharge")): useCharge = paramsDict["useCharge"]
 		length = self.getLength(self.getActivePartIndex())
 		for i in range(len(harmArr)):
 			#print "debug rl=",ring_length," harm=",harmArr[i]," v=",voltArr[i],
 			#print " ph0=",phaseArr[i]," L=",self.getLength()
 			TPB.RingRF(bunch,ring_length,harmArr[i],voltArr[i],phaseArr[i],useCharge)
-		
+
 class KickTEAPOT(NodeTEAPOT):
 	"""
 	Kick TEAPOT element.
@@ -1244,7 +1240,7 @@ class KickTEAPOT(NodeTEAPOT):
 		self.setType("kick teapot")
 		self.setnParts(2)
 		self.waveform = None
-	
+
 	def initialize(self):
 		"""
 		The  Kicker TEAPOT class implementation of
@@ -1304,7 +1300,6 @@ class KickTEAPOT(NodeTEAPOT):
 		Sets the time dependent waveform function
 		"""
 		self.waveform = waveform
-
 
 class TiltTEAPOT(BaseTEAPOT):
 	"""
@@ -1386,3 +1381,35 @@ class FringeFieldTEAPOT(BaseTEAPOT):
 		field will be used in calculation.
 		"""
 		return self.__usage
+
+class UniLatTEAPOT(NodeTEAPOT):
+	"""
+	UniLat TEAPOT element
+	"""
+	def __init__(self, name = "UniLat no name"):
+
+		NodeTEAPOT.__init__(self, name)
+		self.setType("UniLat teapot")
+		self.addParam("angleX", 0.)
+		self.addParam("angleY", 0.)
+		self.addParam("LenTunes", 0.)
+		self.addParam("LatType", 0) #zero means ring
+
+	def track(self, paramsDict):
+
+		bunch = paramsDict["bunch"]
+		length = self.getLength()#self.getActivePartIndex())
+
+		LenTunes = self.getParam("LenTunes")
+		angleX = self.getParam("angleY")
+		angleY = self.getParam("angleY")
+
+		if(paramsDict.has_key("LenTunes")):
+			LenTunes = paramsDict["LenTunes"]
+		if(paramsDict.has_key("angleY")):
+			angleX = paramsDict["angleX"]
+		if(paramsDict.has_key("angleY")):
+			angleY = paramsDict["angleY"]
+
+		LatType = self.getParam("LatType")
+		TPB.UniLat(bunch, length, LenTunes, angleX, angleY, LatType)
