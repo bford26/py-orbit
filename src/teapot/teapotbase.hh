@@ -41,7 +41,7 @@ namespace teapot_base
     void multpfringeIN(Bunch* bunch, int pole, double kl, int skew, int useCharge);
     void multpfringeOUT(Bunch* bunch, int pole, double kl, const int skew, int useCharge);
 
-	void wrapbunch(Bunch* bunch, double length);
+    void wrapbunch(Bunch* bunch, double length);
 
     void kick(Bunch* bunch, double kx, double ky, double kE, int useCharge);
 
@@ -74,7 +74,9 @@ namespace teapot_base
                      int nsteps, int useCharge);
 
     void RingRF(Bunch* bunch, double ring_length, int harmonic_numb, double voltage, double phase_s, int useCharge);
+
+    void UniLat(Bunch* bunch, double length, double LenTunes, double angleX, double angleY, int LatType);
+
 }
 
 #endif  //TEAPOT_BASE_H
-

@@ -36,6 +36,9 @@
 #include "Bunch.hh"
 #include "SyncPart.hh"
 
+//#include "orbit_mpi.hh" //using for error checking
+#include "Matrix.hh"
+
 #include <complex>
 
 namespace teapot_base
@@ -160,7 +163,7 @@ void drift(Bunch* bunch, double length)
     double KNL, phifac, dp_p;
 
     SyncPart* syncPart = bunch->getSyncPart();
-    
+
     double v = OrbitConst::c * syncPart->getBeta();
     if(length > 0.)
     {
@@ -185,7 +188,7 @@ void drift(Bunch* bunch, double length)
         arr[i][4] -= length * phifac;
     }
 }
-	
+
 ///////////////////////////////////////////////////////////////////////////
 // NAME
 //   wrapbunch
@@ -201,12 +204,12 @@ void drift(Bunch* bunch, double length)
 //   Nothing
 //
 ///////////////////////////////////////////////////////////////////////////
-	
+
 void wrapbunch(Bunch* bunch, double length)
 {
 	//coordinate array [part. index][x,xp,y,yp,z,dE]
 	double** arr = bunch->coordArr();
-	
+
 	for(int i = 0; i < bunch->getSize(); i++)
 		{
 			if(arr[i][4] < -length/2.0) arr[i][4] += length;
@@ -347,7 +350,7 @@ void multp(Bunch* bunch, int pole, double kl, int skew, int useCharge)
     double** arr = bunch->coordArr();
 
     kl1 = klc / factorial[pole];
-    
+
     for(int i = 0; i < bunch->getSize(); i++)
     {
         z = std::complex<double>(arr[i][0], arr[i][2]);
@@ -1519,4 +1522,93 @@ void RingRF(Bunch* bunch, double ring_length, int harmonic_numb,
     }
 }
 
-}  //end of namespace teapot_base
+
+///////////////////////////////////////////////////////////////////////////
+// NAME
+//   UniLat
+//
+// DESCRIPTION
+//   Creates the transfer matrix
+//
+// PARAMETERS
+//   bunch = reference to the macro-particle bunch
+//   length = used for beta components
+//   LenTune = length of rotation angle
+//   angleX = used for momentum and translation of particle
+//   angleY =   """
+//
+// RETURNS
+//   Nothing
+//
+///////////////////////////////////////////////////////////////////////////
+
+void UniLat(Bunch* bunch, double length, double LenTunes, double angleX, double angleY, int LatType)
+    {
+        //Local Variables
+        int i, j;
+        double CosX, SinX, CosY, SinY;
+        double alphaX, alphaY, betaX, betaY, etaX;
+        double RhoInv, **PSV, **hold, **R;
+
+        //Matrix contructor
+        OrbitUtils::Matrix* r_matr = new OrbitUtils::Matrix(6, 6); //full of zeros 6x6
+        OrbitUtils::Matrix* psv_matr = new OrbitUtils::Matrix(bunch->getSize(), 6);
+
+        //Defining Values
+        CosX = cos(angleX);
+        CosY = cos(angleY);
+        SinX = sin(angleX);
+        SinY = sin(angleY);
+
+        betaX = length / angleX;
+        betaY = length / angleY;
+        alphaX = 0;
+        alphaY = 0;
+
+        //Curvature Check
+        if (LatType == 1/*"Linac"*/)
+            RhoInv = 0;
+        if (LatType == 0/*"Ring"*/)
+            RhoInv = (2 * OrbitConst::PI) / LenTunes;
+
+        etaX = betaX * betaX * RhoInv;
+
+        //Phase Space Vector - the values are ordered: [index][x,px,y,py,z,pz]
+        hold = bunch->coordArr();
+        PSV = psv_matr->getArray();
+        R = r_matr->getArray();
+
+        // DISCLAIMER: getSize() returns # of particles on the specific cpu
+        for(i=0; i < bunch->getSize(); i++){
+          for(j=0; j<6; j++){
+            PSV[i][j] = hold[i][j];
+          }
+        }
+
+        // Our Matrix class calls zero() function meaning all indexes not seen are filled with zero
+        R[0][0] = CosX;
+        R[0][1] = betaX * SinX;
+        R[0][5] = etaX * (1 - CosX);
+        R[1][0] = -SinX / betaX;
+        R[1][1] = CosX;
+        R[1][5] = etaX * SinX / betaX;
+        R[2][2] = CosY;
+        R[2][3] = betaY * SinY;
+        R[3][2] = -SinY / betaY;
+        R[3][3] = CosY;
+        R[4][0] = RhoInv * betaX * SinX;
+        R[4][1] = RhoInv * betaX * betaX * (1 - CosX);
+        R[4][4] = 1;
+        R[4][5] = RhoInv * etaX * (length - betaX * SinX);
+        R[5][5] = 1;
+
+        //Here we use the matrix multiply and our transfer matrix to change each macro-particle
+        psv_matr->mult(r_matr);
+        hold = psv_matr->getArray(); //updates the bunch in memory
+
+        //Free the memory
+        delete r_matr;
+        delete psv_matr;
+
+    }
+}

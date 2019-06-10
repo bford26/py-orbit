@@ -69,7 +69,7 @@ extern "C"
         return Py_None;
     }
 
-	
+
     //Tracking a bunch through a multipole
     static PyObject* wrap_multp(PyObject *self, PyObject *args)
     {
@@ -460,11 +460,32 @@ extern "C"
         return Py_None;
     }
 
+
+    //Uniform lattice tranform
+    static PyObject* wrap_UniLat(PyObject *self, PyObject *args)
+    {
+        PyObject* pyBunch;
+        double length, LenTunes, angleX, angleY;
+        int LatType;
+
+        if(!PyArg_ParseTuple(    args, "Odddd|i:UniLat",
+                             &pyBunch, &length, &LenTunes, &angleX, &angleY, &LatType))
+        {
+            error("teapotbase - UniLat - cannot parse arguments!");
+        }
+        Bunch* cpp_bunch = (Bunch*) ((pyORBIT_Object *) pyBunch)->cpp_obj;
+        teapot_base::UniLat(cpp_bunch, length, LenTunes, angleX, angleY, LatType);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+
+
     static PyMethodDef teapotbaseMethods[] =
     {
 			{"rotatexy",         wrap_rotatexy,       METH_VARARGS, "Rotates bunch around z axis "},
 			{"drift",            wrap_drift,          METH_VARARGS, "Tracking a bunch through a drift "},
-			{"wrapbunch",		 wrap_wrapbunch,		  METH_VARARGS, "Tracking a bunch through a wrapbunch routine"},
+			{"wrapbunch",		     wrap_wrapbunch,	    METH_VARARGS, "Tracking a bunch through a wrapbunch routine"},
 			{"multp",            wrap_multp,          METH_VARARGS, "Tracking a bunch through a multipole "},
 			{"multpfringeIN",    wrap_multpfringeIN,  METH_VARARGS, "Tracking a bunch through an IN edge of a multipole "},
 			{"multpfringeOUT",   wrap_multpfringeOUT, METH_VARARGS, "Tracking a bunch through an OUT edge of a multipole"},
@@ -485,6 +506,7 @@ extern "C"
 			{"soln",             wrap_soln,           METH_VARARGS, "Integration through a solenoid "},
 			{"wedgebendCF",      wrap_wedgebendCF,    METH_VARARGS, "Straight bends particles through wedge for Combined Function non-SBEND "},
 			{"RingRF",           wrap_RingRF,         METH_VARARGS, "Tracking particles through a simple ring RF cavity."},
+      {"UniLat",           wrap_UniLat,         METH_VARARGS, "Uniform Lattice Focusing Transformation"},
 			{ NULL, NULL }
     };
 
@@ -505,7 +527,7 @@ extern "C"
         Py_DECREF(pyType);
         return pyType;
     }
-	
+
 #ifdef __cplusplus
 }
 #endif
