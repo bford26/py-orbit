@@ -14,6 +14,7 @@ from teapot import QuadTEAPOT
 from teapot import RingRFTEAPOT
 from teapot import SolenoidTEAPOT
 from teapot import TiltTEAPOT
+from teapot import UniLatTEAPOT #Added
 
 from teapot import TPB
 
