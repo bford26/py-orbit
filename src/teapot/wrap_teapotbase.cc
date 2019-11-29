@@ -459,6 +459,27 @@ extern "C"
         Py_INCREF(Py_None);
         return Py_None;
     }
+	
+	
+    //Uniform lattice tranform
+    static PyObject* wrap_UniLat(PyObject *self, PyObject *args)
+    {
+        PyObject* pyBunch;
+        double length, LenTunes, TuneX, TuneY;
+        int LatType;
+
+        if(!PyArg_ParseTuple(    args, "Odddd|i:UniLat",
+                             &pyBunch, &length, &LenTunes, &TuneX, &TuneY, &LatType))
+        {
+            error("teapotbase - UniLat - cannot parse arguments!");
+        }
+        Bunch* cpp_bunch = (Bunch*) ((pyORBIT_Object *) pyBunch)->cpp_obj;
+        teapot_base::UniLat(cpp_bunch, length, LenTunes, TuneX, TuneY, LatType);
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+	
+	
 
     static PyMethodDef teapotbaseMethods[] =
     {
@@ -485,7 +506,8 @@ extern "C"
 			{"soln",             wrap_soln,           METH_VARARGS, "Integration through a solenoid "},
 			{"wedgebendCF",      wrap_wedgebendCF,    METH_VARARGS, "Straight bends particles through wedge for Combined Function non-SBEND "},
 			{"RingRF",           wrap_RingRF,         METH_VARARGS, "Tracking particles through a simple ring RF cavity."},
-			{ NULL, NULL }
+			{"UniLat",           wrap_UniLat,         METH_VARARGS, "Uniform Lattice Focusing Transformation"},
+	    		{ NULL, NULL }
     };
 
     void initteapotbase(void)
