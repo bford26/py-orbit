@@ -19,6 +19,7 @@ from distribution_generators import TwissContainer, TwissAnalysis
 from distribution_generators import GaussDist1D, GaussDist2D, GaussDist3D
 from distribution_generators import KVDist1D, KVDist2D, KVDist3D
 from distribution_generators import WaterBagDist1D,  WaterBagDist2D,  WaterBagDist3D
+from distribution_generators import SelfConDist2D_2
 
 
 __all__ = []
