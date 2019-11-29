@@ -37,6 +37,7 @@ Solenoid
 Kicker
 RingRF
 monitor
+Uniform Lattice
 """
 
 class TEAPOT_Lattice(AccLattice):
@@ -1386,3 +1387,42 @@ class FringeFieldTEAPOT(BaseTEAPOT):
 		field will be used in calculation.
 		"""
 		return self.__usage
+
+	
+	
+class UniLatTEAPOT(NodeTEAPOT):
+	"""
+	UniLat TEAPOT element
+	"""
+	def __init__(self, name = "UniLat no name"):
+		"""
+		Constructor. Creates the Uniform focusing TEAPOT element.
+		"""
+		NodeTEAPOT.__init__(self, name)
+		self.setType("UniLat teapot")
+		self.addParam("TuneX", 1.)
+		self.addParam("TuneY", 1.)
+		self.addParam("LenTunes", 0.)
+		self.addParam("LatType", 1)
+
+	def track(self, paramsDict):
+		"""
+		Track method overwrite for UniLat Node using paramsDict
+		for parameters to be passed to TPB function
+		"""
+		bunch = paramsDict["bunch"]
+		length = self.getLength()
+
+		LenTunes = self.getParam("LenTunes")
+		angleX = self.getParam("TuneX")
+		angleY = self.getParam("TuneY")
+
+		if(paramsDict.has_key("LenTunes")):
+			LenTunes = paramsDict["LenTunes"]
+		if(paramsDict.has_key("TuneX")):
+			TuneX = paramsDict["TuneX"]
+		if(paramsDict.has_key("TuneY")):
+			TuneY = paramsDict["TuneY"]
+
+		LatType = self.getParam("LatType")
+		TPB.UniLat(bunch, length, LenTunes, angleX, angleY, LatType)
