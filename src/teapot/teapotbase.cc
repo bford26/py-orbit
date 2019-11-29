@@ -1519,4 +1519,134 @@ void RingRF(Bunch* bunch, double ring_length, int harmonic_numb,
     }
 }
 
+///////////////////////////////////////////////////////////////////////////
+// NAME
+//   UniLat
+//
+// DESCRIPTION
+//   Creates the transfer matrix to simulate Uniform Focusing (smoothing), to be
+//   used with self-consistent distribution.
+//
+// PARAMETERS
+//   bunch = reference to the macro-particle bunch
+//   length = element's length
+//   LenTunes = length of rotation angle
+//   TuneX = Defines oscillations in a period for x coord
+//   TuneY = "" for y coord
+//   LatType = either linear or ring lattice - determines curvature
+//
+// RETURNS
+//   Nothing
+//
+///////////////////////////////////////////////////////////////////////////
+
+void UniLat(Bunch* bunch, double length, double LenTunes, double TuneX, double TuneY, int LatType)
+    {
+
+        int i, j, k;
+        double CosX, SinX, CosY, SinY;
+        double alphaX, alphaY, betaX, betaY, etaX, angleX, angleY;
+        double RhoInv, BETA, GAMMA, E0, **PSV, **hold, **R;
+        SyncPart* syncPart = bunch->getSyncPart();
+
+
+        R = new double* [6];
+        for(i = 0; i < 6; ++i)
+          R[i] = new double[6];
+
+        PSV = new double* [bunch->getSize()];
+        for(i = 0; i < bunch->getSize(); ++i)
+          PSV[i] = new double[6];
+
+
+        angleX = 2 * OrbitConst::PI * TuneX * length / LenTunes;
+        angleY = 2 * OrbitConst::PI * TuneY * length / LenTunes;
+
+        //Twiss Parameters
+        betaX = LenTunes / (2 * OrbitConst::PI * TuneX);
+        betaY = LenTunes / (2 * OrbitConst::PI * TuneY);
+        alphaX = 0;
+        alphaY = 0;
+
+        CosX = cos(angleX);
+        CosY = cos(angleY);
+        SinX = sin(angleX);
+        SinY = sin(angleY);
+
+        //Relativistic Terms
+        BETA = syncPart->getBeta();
+        GAMMA = 1 / sqrt( 1 + BETA*BETA);
+        E0 = bunch->getMass() + syncPart->getEnergy();
+
+        //Curvature Check
+        if (LatType == 1/*"LINAC"*/)
+            RhoInv = 0.0;
+        if (LatType == 0/*"RING"*/)
+            RhoInv = (2 * OrbitConst::PI) / LenTunes;
+
+        etaX = betaX * betaX * RhoInv;
+
+        //Phase Space Vector - ordered: [index][x,px,y,py,z,pz]
+        hold = bunch->coordArr();
+
+        for(i=0; i < bunch->getSize(); i++){
+          for(j=0; j<6; j++){
+            PSV[i][j] = hold[i][j];
+          }
+        }
+
+        for(i = 0; i < 6; i++){
+          for(j = 0 ; j < 6; j++){
+            R[i][j] = 0;
+          }
+        }
+
+        R[0][0] = CosX;
+        R[0][1] = betaX * SinX;
+        R[1][0] = -SinX / betaX;
+        R[1][1] = CosX;
+
+        R[2][2] = CosY;
+        R[2][3] = betaY * SinY;
+        R[3][2] = -SinY / betaY;
+        R[3][3] = CosY;
+
+        R[4][4] = 1.0;
+        R[5][5] = 1.0;
+
+        R[0][5] = etaX * (1 - CosX) / ( BETA*BETA * E0 );
+        R[1][5] = etaX * SinX / ( betaX * BETA*BETA * E0 );
+        R[4][0] = 1*RhoInv * betaX * SinX;
+        R[4][1] = RhoInv * betaX * betaX * (1.0 - CosX);
+        R[4][5] = (1 * RhoInv * etaX * (length - betaX * SinX ) + 0 *length/(GAMMA*GAMMA)) / ( BETA * E0 );
+
+        //Multiply Matrix Calculation
+        for(i = 0; i < bunch->getSize(); i++){
+          for(j = 0; j < 6; j++){
+            PSV[i][j] = 0;
+            for(k = 0; k < 6; k++){
+              PSV[i][j] += hold[i][k] * R[j][k];
+            }
+          }
+        }
+
+        // apply changes to bunch
+        for(i=0; i < bunch->getSize(); i++){
+          for(j=0; j<6; j++){
+            hold[i][j] = PSV[i][j];
+          }
+        }
+
+        for(i = 0; i < 6; ++i) {
+          delete [] R[i];
+        }
+        delete [] R;
+
+        for(i = 0; i < bunch->getSize(); ++i) {
+          delete [] PSV[i];
+        }
+        delete [] PSV;
+
+    }	
+	
 }  //end of namespace teapot_base
