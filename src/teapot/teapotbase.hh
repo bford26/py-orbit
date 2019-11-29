@@ -74,6 +74,7 @@ namespace teapot_base
                      int nsteps, int useCharge);
 
     void RingRF(Bunch* bunch, double ring_length, int harmonic_numb, double voltage, double phase_s, int useCharge);
+    void UniLat(Bunch* bunch, double length, double LenTunes, double angleX, double angleY, int LatType);
 }
 
 #endif  //TEAPOT_BASE_H
