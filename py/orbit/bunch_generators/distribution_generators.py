@@ -325,6 +325,38 @@ class GaussDist3D:
 	def getTwissContainers(self):
 		""" Returns the (twissX,twissY,twissZ) containers. """
 		return (self.twissX,self.twissY,self.twissZ)				
+
+	
+class SelfConDist2D_2:
+	"""
+	Different method to generate a self consistant beam distro
+	"""
+	def __init__(self, twissX = TwissContainer(0.,1.,1.), twissY = TwissContainer(0.,1.,1.)):
+		""" Constructor """
+		self.twissX = twissX
+		self.twissY = twissY
+
+	def getCoordinates(self):
+		xf = 2 * pow(self.twissX.emittance * self.twissX.beta, 0.5)
+		xpf = 2 * pow(self.twissX.emittance / self.twissX.beta, 0.5)
+		yf = 2 * pow(self.twissY.emittance * self.twissY.beta, 0.5)
+		ypf = 2 * pow(self.twissY.emittance / self.twissY.beta, 0.5)
+		theta = 2 * math.pi * random.random()
+		r = pow(random.random(),0.5)
+		xr = xf * r
+		xpr = xpf * r
+		yr = yf * r
+		ypr = ypf * r
+		x = xr * math.cos(theta)
+		xp = -xpr * (math.sin(theta)+self.twissX.alpha * math.cos(theta))
+		y = yr * math.cos(theta - math.pi/2)
+		yp = -ypr * (math.sin(theta - math.pi/2) + self.twissY.alpha * math.cos(theta - math.pi/2))
+		return (x,xp,y,yp)
+
+	def getTwissContainers(self):
+		""" Returns the (twissX,twissY,twissZ) containers. """
+		return (self.twissX,self.twissY)
+
 	
 #--------------------------------------------------
 # Auxilary classes 
