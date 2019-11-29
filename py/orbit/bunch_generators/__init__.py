@@ -33,4 +33,4 @@ __all__.append("KVDist3D")
 __all__.append("WaterBagDist1D")
 __all__.append("WaterBagDist2D")
 __all__.append("WaterBagDist3D")
-
+__all__.append("SelfConDist2D_2")
